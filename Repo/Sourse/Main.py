@@ -84,3 +84,12 @@ def load_variant_json(path: Path) -> tuple[list[Task], int, bool]:
             raise ValueError(f"В задаче #{i} нет обязательного поля: {e}") from e
 
     return tasks, n_cpu, has_network
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Практическая №1: классификация СРВ (JSON input)")
+    parser.add_argument("-i", "--input", type=Path, required=True, help="Путь к JSON файлу варианта")
+    args = parser.parse_args()
+
+    tasks, n_cpu, has_network = load_variant_json(args.input)
+
+    print_table(tasks)
+    print_conclusion(tasks, n_cpu, has_network)
