@@ -53,3 +53,34 @@ def classify_architecture(n_cpu: int, has_network: bool) -> str:
     if n_cpu <= 1:
         return "однопроцессорная"
     return "многопроцессорная"
+import json
+from typing import Any
+
+def load_variant_json(path: Path) -> tuple[list[Task], int, bool]:
+    if not path.exists():
+        raise FileNotFoundError(f"Файл не найден: {path}")
+
+    data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+
+    system = data.get("system", {})
+    n_cpu = int(system.get("n_cpu", 1))
+    has_network = bool(system.get("has_network", False))
+
+    raw_tasks = data.get("tasks", [])
+    if not isinstance(raw_tasks, list) or not raw_tasks:
+        raise ValueError("Поле 'tasks' отсутствует или пустое.")
+
+    tasks: list[Task] = []
+    for i, item in enumerate(raw_tasks, start=1):
+        try:
+            tasks.append(Task(
+                name=str(item["name"]),
+                hardness=str(item["hardness"]),
+                C=int(item["C"]),
+                D=int(item["D"]),
+                T=int(item["T"]),
+            ))
+        except KeyError as e:
+            raise ValueError(f"В задаче #{i} нет обязательного поля: {e}") from e
+
+    return tasks, n_cpu, has_network
